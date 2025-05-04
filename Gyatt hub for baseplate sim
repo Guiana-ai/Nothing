@@ -1,0 +1,138 @@
+-- xCxS Hub - Muscle Legends GUI Script
+-- Created by XcodyXselling
+-- Features: Auto Train, Auto Rebirth, Auto Kill Karma, Fast Rebirth, Auto Teleport to King, Lock Position, Whitelist System, Beamed V2 Features
+
+local allowedUsers = {
+    ["Cody82456"] = true,
+    ["Sellingmillionwarrio"] = true
+}
+
+local localPlayer = game.Players.LocalPlayer
+
+if not allowedUsers[localPlayer.Name] then
+    localPlayer:Kick("You are not whitelisted to use xCxS Hub.")
+    return
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+
+local AutoTrainButton = Instance.new("TextButton")
+local AutoRebirthButton = Instance.new("TextButton")
+local AutoKillKarmaButton = Instance.new("TextButton")
+local FastRebirthButton = Instance.new("TextButton")
+local AutoTeleportKingButton = Instance.new("TextButton")
+local LockPositionButton = Instance.new("TextButton")
+
+local positionLocked = false -- Tracks whether Lock Position is enabled
+
+-- GUI Setup
+ScreenGui.Parent = localPlayer.PlayerGui
+MainFrame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 250, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+-- Lock Position Toggle
+local function toggleLockPosition()
+    positionLocked = not positionLocked
+    local hrp = localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.Anchored = positionLocked
+    end
+end
+
+LockPositionButton.Parent = MainFrame
+LockPositionButton.Size = UDim2.new(0, 220, 0, 50)
+LockPositionButton.Position = UDim2.new(0, 15, 0, 310)
+LockPositionButton.Text = "Lock Position"
+LockPositionButton.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+
+LockPositionButton.MouseButton1Click:Connect(function()
+    toggleLockPosition()
+    LockPositionButton.Text = positionLocked and "Unlock Position" or "Lock Position"
+end)
+
+-- Auto Train Button
+AutoTrainButton.Parent = MainFrame
+AutoTrainButton.Size = UDim2.new(0, 220, 0, 50)
+AutoTrainButton.Position = UDim2.new(0, 15, 0, 10)
+AutoTrainButton.Text = "Auto Train"
+AutoTrainButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+
+AutoTrainButton.MouseButton1Click:Connect(function()
+    while true do
+        local trainingArea = game.Workspace:FindFirstChild("TrainingArea")
+        if trainingArea then
+            localPlayer.Character.HumanoidRootPart.CFrame = trainingArea.CFrame
+            game.ReplicatedStorage.Remotes.Train:FireServer()
+        end
+        wait(0.1)
+    end
+end)
+
+-- Auto Rebirth Button
+AutoRebirthButton.Parent = MainFrame
+AutoRebirthButton.Size = UDim2.new(0, 220, 0, 50)
+AutoRebirthButton.Position = UDim2.new(0, 15, 0, 70)
+AutoRebirthButton.Text = "Auto Rebirth"
+AutoRebirthButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+
+AutoRebirthButton.MouseButton1Click:Connect(function()
+    while true do
+        game.ReplicatedStorage.Remotes.Rebirth:FireServer()
+        wait(2)
+    end
+end)
+
+-- Auto Kill Karma Button
+AutoKillKarmaButton.Parent = MainFrame
+AutoKillKarmaButton.Size = UDim2.new(0, 220, 0, 50)
+AutoKillKarmaButton.Position = UDim2.new(0, 15, 0, 130)
+AutoKillKarmaButton.Text = "Auto Kill Karma"
+AutoKillKarmaButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+
+AutoKillKarmaButton.MouseButton1Click:Connect(function()
+    while true do
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= localPlayer then
+                local char = player.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.Health = 0
+                end
+            end
+        end
+        wait(1)
+    end
+end)
+
+-- Fast Rebirth Button
+FastRebirthButton.Parent = MainFrame
+FastRebirthButton.Size = UDim2.new(0, 220, 0, 50)
+FastRebirthButton.Position = UDim2.new(0, 15, 0, 190)
+FastRebirthButton.Text = "Fast Rebirth"
+FastRebirthButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+
+FastRebirthButton.MouseButton1Click:Connect(function()
+    while true do
+        game.ReplicatedStorage.Remotes.Rebirth:FireServer()
+        wait(0.5)
+    end
+end)
+
+-- Auto Teleport King Button
+AutoTeleportKingButton.Parent = MainFrame
+AutoTeleportKingButton.Size = UDim2.new(0, 220, 0, 50)
+AutoTeleportKingButton.Position = UDim2.new(0, 15, 0, 250)
+AutoTeleportKingButton.Text = "Auto Teleport to King"
+AutoTeleportKingButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+
+AutoTeleportKingButton.MouseButton1Click:Connect(function()
+    while true do
+        local king = game.Workspace:FindFirstChild("KingPosition")
+        if king then
+            localPlayer.Character.HumanoidRootPart.CFrame = king.CFrame
+        end
+        wait(3)
+    end
+end)
