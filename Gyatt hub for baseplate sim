@@ -1,138 +1,144 @@
--- xCxS Hub - Muscle Legends GUI Script
--- Created by XcodyXselling
--- Features: Auto Train, Auto Rebirth, Auto Kill Karma, Fast Rebirth, Auto Teleport to King, Lock Position, Whitelist System, Beamed V2 Features
+local UserInputService = game:GetService("UserInputService")
 
 local allowedUsers = {
     ["Cody82456"] = true,
     ["Sellingmillionwarrio"] = true
 }
 
+local correctKey = "gyatt" -- Set your key here
 local localPlayer = game.Players.LocalPlayer
 
-if not allowedUsers[localPlayer.Name] then
-    localPlayer:Kick("You are not whitelisted to use xCxS Hub.")
-    return
-end
+-- Key System
+local KeyScreenGui = Instance.new("ScreenGui")
+local KeyFrame = Instance.new("Frame")
+local KeyInputBox = Instance.new("TextBox")
+local KeySubmitButton = Instance.new("TextButton")
 
+KeyScreenGui.Parent = localPlayer.PlayerGui
+KeyFrame.Parent = KeyScreenGui
+KeyFrame.Size = UDim2.new(0, 250, 0, 150)
+KeyFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+
+KeyInputBox.Parent = KeyFrame
+KeyInputBox.Size = UDim2.new(0, 220, 0, 40)
+KeyInputBox.Position = UDim2.new(0, 15, 0, 20)
+KeyInputBox.PlaceholderText = "Enter key..."
+KeyInputBox.Text = ""
+KeyInputBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+KeySubmitButton.Parent = KeyFrame
+KeySubmitButton.Size = UDim2.new(0, 220, 0, 40)
+KeySubmitButton.Position = UDim2.new(0, 15, 0, 70)
+KeySubmitButton.Text = "Submit Key"
+KeySubmitButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+
+KeySubmitButton.MouseButton1Click:Connect(function()
+    if KeyInputBox.Text == correctKey then
+        KeyScreenGui:Destroy()
+    else
+        localPlayer:Kick("Invalid key! Access denied.")
+    end
+end)
+
+-- Main GUI Setup
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
+local MinimizeButton = Instance.new("TextButton")
+local ColorPicker = Instance.new("TextBox")
 
-local AutoTrainButton = Instance.new("TextButton")
 local AutoRebirthButton = Instance.new("TextButton")
-local AutoKillKarmaButton = Instance.new("TextButton")
 local FastRebirthButton = Instance.new("TextButton")
-local AutoTeleportKingButton = Instance.new("TextButton")
-local LockPositionButton = Instance.new("TextButton")
+local AutoHatchButton = Instance.new("TextButton")
 
-local positionLocked = false -- Tracks whether Lock Position is enabled
+local positionLocked = false
+local rebirthActive = false
+local fastRebirthActive = false
+local hatchActive = false
 
--- GUI Setup
 ScreenGui.Parent = localPlayer.PlayerGui
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 250, 0, 500)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -250)
+MainFrame.Size = UDim2.new(0, 250, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -200)
 MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
--- Lock Position Toggle
-local function toggleLockPosition()
-    positionLocked = not positionLocked
-    local hrp = localPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.Anchored = positionLocked
-    end
-end
+-- Minimize Button
+MinimizeButton.Parent = MainFrame
+MinimizeButton.Size = UDim2.new(0, 220, 0, 30)
+MinimizeButton.Position = UDim2.new(0, 15, 0, 5)
+MinimizeButton.Text = "Minimize"
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 
-LockPositionButton.Parent = MainFrame
-LockPositionButton.Size = UDim2.new(0, 220, 0, 50)
-LockPositionButton.Position = UDim2.new(0, 15, 0, 310)
-LockPositionButton.Text = "Lock Position"
-LockPositionButton.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
-
-LockPositionButton.MouseButton1Click:Connect(function()
-    toggleLockPosition()
-    LockPositionButton.Text = positionLocked and "Unlock Position" or "Lock Position"
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
 end)
 
--- Auto Train Button
-AutoTrainButton.Parent = MainFrame
-AutoTrainButton.Size = UDim2.new(0, 220, 0, 50)
-AutoTrainButton.Position = UDim2.new(0, 15, 0, 10)
-AutoTrainButton.Text = "Auto Train"
-AutoTrainButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+-- Color Picker
+ColorPicker.Parent = MainFrame
+ColorPicker.Size = UDim2.new(0, 220, 0, 30)
+ColorPicker.Position = UDim2.new(0, 15, 0, 50)
+ColorPicker.PlaceholderText = "Enter Color (RGB Values)"
+ColorPicker.Text = ""
+ColorPicker.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 
-AutoTrainButton.MouseButton1Click:Connect(function()
-    while true do
-        local trainingArea = game.Workspace:FindFirstChild("TrainingArea")
-        if trainingArea then
-            localPlayer.Character.HumanoidRootPart.CFrame = trainingArea.CFrame
-            game.ReplicatedStorage.Remotes.Train:FireServer()
+ColorPicker.FocusLost:Connect(function()
+    local color = Color3.fromRGB(tonumber(ColorPicker.Text:match("%d+")), tonumber(ColorPicker.Text:match("%d+")), tonumber(ColorPicker.Text:match("%d+")))
+    MainFrame.BackgroundColor3 = color
+    for _, obj in pairs(MainFrame:GetChildren()) do
+        if obj:IsA("TextButton") then
+            obj.BackgroundColor3 = color
+            obj.TextColor3 = Color3.fromRGB(255, 255, 255) -- Ensure text remains visible
         end
-        wait(0.1)
     end
 end)
 
--- Auto Rebirth Button
+-- Auto Rebirth
 AutoRebirthButton.Parent = MainFrame
 AutoRebirthButton.Size = UDim2.new(0, 220, 0, 50)
-AutoRebirthButton.Position = UDim2.new(0, 15, 0, 70)
-AutoRebirthButton.Text = "Auto Rebirth"
+AutoRebirthButton.Position = UDim2.new(0, 15, 0, 90)
+AutoRebirthButton.Text = "Start Auto Rebirth"
 AutoRebirthButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
 
 AutoRebirthButton.MouseButton1Click:Connect(function()
-    while true do
+    rebirthActive = not rebirthActive
+    AutoRebirthButton.Text = rebirthActive and "Stop Auto Rebirth" or "Start Auto Rebirth"
+
+    while rebirthActive do
         game.ReplicatedStorage.Remotes.Rebirth:FireServer()
         wait(2)
     end
 end)
 
--- Auto Kill Karma Button
-AutoKillKarmaButton.Parent = MainFrame
-AutoKillKarmaButton.Size = UDim2.new(0, 220, 0, 50)
-AutoKillKarmaButton.Position = UDim2.new(0, 15, 0, 130)
-AutoKillKarmaButton.Text = "Auto Kill Karma"
-AutoKillKarmaButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-
-AutoKillKarmaButton.MouseButton1Click:Connect(function()
-    while true do
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= localPlayer then
-                local char = player.Character
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.Health = 0
-                end
-            end
-        end
-        wait(1)
-    end
-end)
-
--- Fast Rebirth Button
+-- Fast Rebirth
 FastRebirthButton.Parent = MainFrame
 FastRebirthButton.Size = UDim2.new(0, 220, 0, 50)
-FastRebirthButton.Position = UDim2.new(0, 15, 0, 190)
-FastRebirthButton.Text = "Fast Rebirth"
-FastRebirthButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+FastRebirthButton.Position = UDim2.new(0, 15, 0, 150)
+FastRebirthButton.Text = "Start Fast Rebirth"
+FastRebirthButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
 FastRebirthButton.MouseButton1Click:Connect(function()
-    while true do
+    fastRebirthActive = not fastRebirthActive
+    FastRebirthButton.Text = fastRebirthActive and "Stop Fast Rebirth" or "Start Fast Rebirth"
+
+    while fastRebirthActive do
         game.ReplicatedStorage.Remotes.Rebirth:FireServer()
         wait(0.5)
     end
 end)
 
--- Auto Teleport King Button
-AutoTeleportKingButton.Parent = MainFrame
-AutoTeleportKingButton.Size = UDim2.new(0, 220, 0, 50)
-AutoTeleportKingButton.Position = UDim2.new(0, 15, 0, 250)
-AutoTeleportKingButton.Text = "Auto Teleport to King"
-AutoTeleportKingButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+-- Auto Hatch Pets
+AutoHatchButton.Parent = MainFrame
+AutoHatchButton.Size = UDim2.new(0, 220, 0, 50)
+AutoHatchButton.Position = UDim2.new(0, 15, 0, 210)
+AutoHatchButton.Text = "Start Auto Hatch"
+AutoHatchButton.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
 
-AutoTeleportKingButton.MouseButton1Click:Connect(function()
-    while true do
-        local king = game.Workspace:FindFirstChild("KingPosition")
-        if king then
-            localPlayer.Character.HumanoidRootPart.CFrame = king.CFrame
-        end
-        wait(3)
+AutoHatchButton.MouseButton1Click:Connect(function()
+    hatchActive = not hatchActive
+    AutoHatchButton.Text = hatchActive and "Stop Auto Hatch" or "Start Auto Hatch"
+
+    while hatchActive do
+        game.ReplicatedStorage.Remotes.HatchEgg:FireServer()
+        wait(1.5)
     end
 end)
